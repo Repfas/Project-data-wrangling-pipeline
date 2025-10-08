@@ -21,10 +21,11 @@ def data_validation(data):
 
     column_shape = data.shape[1]
     row_shape = data.shape[0]
-
+    
     print(f'Number of columns {column_shape}')
     print(f'Number of row {row_shape}')
-
+    print("\n\n")
+    print('-'*100)  
     print("\033[1m>>>>> STEP 2 : CHECK COLUMNS \033[0m")
     # get a set of requirement and actual one
     requirement_need = set(columns_requirements().keys())
@@ -38,8 +39,10 @@ def data_validation(data):
                 print(f'The data need is {req_col}')
         for col in actual_data:
             if col not in requirement_need:
-                print(f'The data column should be removed {data}')
-
+                print(f'The data column should be removed {col}')
+    print("\n\n")
+    print('-'*100)
+    print("\033[1m>>>>> STEP 3 : CHECK DATA TYPES \033[0m")
     # check the data type 
     req_data = columns_requirements()
     actual_data = list(actual_data)
@@ -60,6 +63,8 @@ def data_validation(data):
             print(f'{column} must be {req_data[column]}')
     else:
         print("All checked column type are match with requirement")
+    print("\n\n")
+    print('-'*100)
 
 sales_dataF = pd.read_csv("live class/sales_data.csv")
 data = sales_dataF
