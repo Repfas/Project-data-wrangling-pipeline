@@ -30,13 +30,14 @@ def data_validation(data):
     # get a set of requirement and actual one
     requirement_need = set(columns_requirements().keys())
     actual_data = set(data.columns)
-
+    col_needed = []
     if requirement_need == actual_data:
         print('column match in your database')
     else:
         for req_col in requirement_need:
             if req_col not in actual_data:
                 print(f'The data need is {req_col}')
+                col_needed.append(req_col)
         for col in actual_data:
             if col not in requirement_need:
                 print(f'The data column should be removed {col}')
@@ -65,7 +66,47 @@ def data_validation(data):
         print("All checked column type are match with requirement")
     print("\n\n")
     print('-'*100)
+    print("\033[1m>>>>> STEP 4 : CHECK MISSING VALUES \033[0m")
+    actual_data = list(actual_data)
+    missing_value_persentages = {}
+    for col in actual_data:
+        persentage_miss = data[col].isna().sum()/ len(data)*100
+        if persentage_miss >0:
+            missing_value_persentages[col] = persentage_miss
+    print('the missing values columns is')
+    for miss_col,persentage in missing_value_persentages.items():
+        print(''*50,f'-{miss_col}:{round(persentage,2)}%')
+    print("\n\n")
+    print('-'*100)
+    print("\033[1m>>>>> STEP 5 : CHECK DUPLICATES DATA \033[0m")
+    # find the number of duplicate data
+    count_duplicate = data.duplicated(keep= False).sum()
+    if count_duplicate:
+        print(f'There are {count_duplicate} duplicates data')
+    else:
+        print('There is no duplicates data')
+    # need to kill the Nan first
+    
+    # extract data from column needed
+    # add the col need to the dataframe 
+
+    return data
+
+
+
+
 
 sales_dataF = pd.read_csv("live class/sales_data.csv")
 data = sales_dataF
 data_validation(data)
+data['street'] = data['purchase_address'].str.extract(r'(\d+\s[A-Za-z0-9\s]+),')
+data['city'] = data['purchase_address'].str.extract(r',\s([A-Za-z\s]+),')
+data['zip_code'] = data['purchase_address'].str.extract(r'([A-Z]{2}\s\d+)')
+data.drop(columns = 'purchase_address', inplace = True)
+data.dropna(inplace= True)
+data.drop_duplicates(keep='first',inplace=True)
+data['order_id'] =data['order_id'].astype(dtype='int')
+data['quantity_orderd']= data['quantity_orderd'].astype(dtype='int')
+data['order_date']= data['order_date'].astype(dtype='datetime64[ns]')
+data_validation(data)
+
