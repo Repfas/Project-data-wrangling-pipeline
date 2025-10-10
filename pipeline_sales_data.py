@@ -2,7 +2,7 @@ import pandas as pd
 import tabulate
 
 
-def data_validation(data):
+def data_validation(data:pd.DataFrame):
     def columns_requirements():
         columns = {'order_id' : int,
                 'product' : object,
@@ -17,7 +17,9 @@ def data_validation(data):
 
     
 
-    print("\033[1m>>>>> STEP 1 : CHECK DATA SHAPE \033[0m")
+    print("╔══════════════════════════════╗")
+    print("║   🚀 DATA SHAPE ANALYSIS     ║")
+    print("╚══════════════════════════════╝")
 
     column_shape = data.shape[1]
     row_shape = data.shape[0]
@@ -26,7 +28,9 @@ def data_validation(data):
     print(f'Number of row {row_shape}')
     print("\n\n")
     print('-'*100)  
-    print("\033[1m>>>>> STEP 2 : CHECK COLUMNS \033[0m")
+    print("╔══════════════════════════════╗")
+    print("║  🚀 DATA COLUMN ANALYSIS     ║")
+    print("╚══════════════════════════════╝")
     # get a set of requirement and actual one
     requirement_need = set(columns_requirements().keys())
     actual_data = set(data.columns)
@@ -43,11 +47,12 @@ def data_validation(data):
                 print(f'The data column should be removed {col}')
     print("\n\n")
     print('-'*100)
-    print("\033[1m>>>>> STEP 3 : CHECK DATA TYPES \033[0m")
+    print("╔══════════════════════════════╗")
+    print("║   🚀 DATA CHECKING TYPE      ║")
+    print("╚══════════════════════════════╝")
     # check the data type 
     req_data = columns_requirements()
     actual_data = list(actual_data)
-    print(actual_data)
     not_match_columns = []
 
     for req_column,req_type_data in req_data.items():
@@ -66,7 +71,9 @@ def data_validation(data):
         print("All checked column type are match with requirement")
     print("\n\n")
     print('-'*100)
-    print("\033[1m>>>>> STEP 4 : CHECK MISSING VALUES \033[0m")
+    print("╔══════════════════════════════╗")
+    print("║  🚀 mMISSING VALUE ANALYSIS  ║")
+    print("╚══════════════════════════════╝")
     actual_data = list(actual_data)
     missing_value_persentages = {}
     for col in actual_data:
@@ -78,7 +85,9 @@ def data_validation(data):
         print(''*50,f'-{miss_col}:{round(persentage,2)}%')
     print("\n\n")
     print('-'*100)
-    print("\033[1m>>>>> STEP 5 : CHECK DUPLICATES DATA \033[0m")
+    print("╔══════════════════════════════╗")
+    print("║🚀 DATA DUPLICATE ANALYSIS    ║")
+    print("╚══════════════════════════════╝")
     # find the number of duplicate data
     count_duplicate = data.duplicated(keep= False).sum()
     if count_duplicate:
