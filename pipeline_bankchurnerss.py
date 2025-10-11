@@ -74,8 +74,11 @@ def cleaning_data(data):
                 not_match.append(req_col)
         else:
             print(f'The coloumn {req_col} are not exist!')
-    for col in not_match:
-        print(f'the coloumn {col} is require type data {req_data[col]}')
+    if not_match:
+        for col in not_match:
+            print(f'the coloumn {col} is require type data {req_data[col]}')
+    else:
+        print('All column type has match with the requirement')
     print('\n\n')
     print('-'*100)
     print("🔍 " + "\033[1;31m" + "FRAUD DETECTION SCAN" + "\033[0m" + " 🔍")
@@ -115,17 +118,99 @@ def cleaning_data(data):
             if val not in actual_value:
                 missing_required_values.append(val)
         missing_required_dict[col] = missing_required_values
-
+    
         # for unexpected values 
         for val in actual_value:
             if val not in req_values:
                 unexpected_actual_values.append(val)
         unexpected_actual_dict[col] = unexpected_actual_values
+    
+    # number of required that not in actual value 
+    len_miss_req = 0
+    len_unexp_act = 0
+    
+    for miss_req_col, miss_req_values in missing_required_dict.items():
+        len_miss_req += len(miss_req_values)
+    # number of actual that not in required value
+    for unexp_act_col,unexp_act_values in unexpected_actual_dict.items():
+        len_unexp_act += len(unexp_act_values)
+    # check the number of required value are not in actual value
+    if len_miss_req >0:
+        print("   🔍 COMPLIANCE VERIFICATION: Required Values")
+        print("   ❌ STATUS: NON-COMPLIANT")
+        print("   📝 FINDING: Dataset missing expected categories")
+        print("   📝 REQUIRED VALUES NOT PRESENT:")
+        for miss_req_col, miss_req_values in missing_required_dict.items():
+            print(f'{miss_req_col}')
+            for miss_rwq_value in miss_req_values:
+                print(miss_rwq_value)
+    else:
+        print("   🏦 AUDIT RESULT: Data values compliant")
+        print("   ✅ CERTIFICATION: All required categories verified")
+    # check the number of actual value are not in the required value 
+    if len_unexp_act > 0:
+        print("   ❌ DATA INTEGRITY: Unexpected values detected")
+        print("   🚨 VALIDATION FAILED: Values outside expected range:")
+        for unexp_act_col,unexp_act_values in unexpected_actual_dict.items():
+            print(f'        {unexp_act_col}:')
+            for unexp_act_value in unexp_act_values:
+                print(f'            {unexp_act_value}')
+    else:
+        print("   🏦 AUDIT RESULT: Data values compliant")
+        print("   ✅ CERTIFICATION: All entries validated") 
 
-    print(unexpected_actual_dict)
-    print(missing_required_dict)
-        
-        
 
 bank_churners = pd.read_csv('live class/BankChurners.csv')
 cleaning_data(data=bank_churners)
+# cleaning the data 
+# create the def of extract data 
+print(bank_churners['Income_Category'].unique())
+import re 
+# make a funct of detection and extract the data
+def extract_income_cat(row:pd.DataFrame):
+    match = re.findall(r'\d+',str(row['Income_Category']))
+    if len(match) == 2: 
+        return int(match[0]+'000'),int(match[0]+'000')
+    elif len(match) == 1:
+        return 0, int(match[0]+'000')
+    else:
+        return None
+    
+    
+new_col = ['Income_Category_Min','Income_Category_Max']
+bank_churners[new_col] = bank_churners.apply(extract_income_cat,axis=1 ,result_type = 'expand')
+# drop income category 
+
+bank_churners.drop(columns= 'Income_Category', inplace= True)
+
+# drop missing value 
+bank_churners.dropna(inplace=True)
+# drop duplicate data
+bank_churners.drop_duplicates(keep= 'first',inplace= True)
+
+# change the type data 
+bank_churners['CLIENTNUM']= bank_churners['CLIENTNUM'].astype('int')
+bank_churners['Income_Category_Min']= bank_churners['Income_Category_Min'].astype('int')
+bank_churners['Income_Category_Max']= bank_churners['Income_Category_Max'].astype('int')
+# change the inconsistent column and data
+# make a map for change the data value
+
+map_value = {
+    'Attrition_Flag':
+            {'Existing_Customer': 'Existing Customer',
+             'Attrited_Customer': 'Attrited Customer'},
+    'Gender':
+            {'Male':'M',
+            'Female':'F'},
+    'Education_Level':
+            {'High-School':'High School'}
+}
+# Replace data 
+for col in list(map_value.keys()):
+    bank_churners[col] = bank_churners[col].replace(map_value[col])
+# drop Unknown
+bank_churners = bank_churners[bank_churners['Marital_Status'] != 'Unknown']
+cleaning_data(bank_churners)
+bank_churners.columns = bank_churners.columns.str.lower()
+print(bank_churners.head())
+save_csv = bank_churners.to_csv('Cleanned_bank_churners.csv',index= False)
