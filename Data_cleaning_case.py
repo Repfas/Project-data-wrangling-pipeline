@@ -17,7 +17,9 @@ def columns_requirements():
 
 sales_dataF = pd.read_csv("live class/sales_data.csv")
 
-print("\033[1m>>>>> STEP 1 : CHECK DATA SHAPE \033[0m")
+print("╔══════════════════════════════╗")
+print("║   🚀 DATA SHAPE ANALYSIS     ║")
+print("╚══════════════════════════════╝")
 
 column_shape = sales_dataF.shape[1]
 row_shape = sales_dataF.shape[0]
@@ -25,7 +27,9 @@ row_shape = sales_dataF.shape[0]
 print(f'Number of columns {column_shape}')
 print(f'Number of row {row_shape}')
 
-print("\033[1m>>>>> STEP 2 : CHECK COLUMNS \033[0m")
+print("╔══════════════════════════════╗")
+print("║   🚀 Column check            ║")
+print("╚══════════════════════════════╝")
 # get a set of requirement and actual one
 requirement_need = set(columns_requirements().keys())
 actual_data = set(sales_dataF.columns)
