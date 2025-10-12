@@ -54,4 +54,22 @@ staff_df = get_table('staff',engine)
 payment_df = get_table('payment',engine)
 film_df = get_table('film',engine)
 
-   
+
+table_name_dict = {
+    'actor':'actor_df',
+    'store':'store_df',
+    'address':'address_df',
+    'category':'category_df',
+    'customer':'customer_df',
+    'film_actor':'film_actor_df',
+    'film_category':'film_category_df',
+    'inventory':'inventory_df',
+    'language':'language_df',
+    'rental':'rental_df',
+    'staff':'staff_df',
+    'payment':'payment_df',
+    'film':'film_df',
+    'city' : city_df, 
+    'country' : country_df
+}
+
