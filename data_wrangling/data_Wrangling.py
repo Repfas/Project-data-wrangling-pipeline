@@ -121,21 +121,107 @@ check_shape(actual_table=table_name_dict)
 
 # Checking a columns 
 def checking_column(actual_table,requirement_table):
-    table_col_req = []
     for table_name in requirement_table:
-        table_col_req.append(table_name)
-        col_act = list(actual_table[table_name])
-        table_both = set(table_col_req + table_col_act)
-        for 
-
-
-
+        act_cols = list(actual_table[table_name].columns)
+        req_tables = requirement_table[table_name]
+        req_cols = []
+        for table in req_tables:
+            req_cols.append(table['column_name'])
+        existance = []
+        both_cols = set(act_cols + req_cols)
+        for col in both_cols:
+            if col in act_cols:
+                mark_act = 'YES'  
+            else:
+                mark_act = 'NO'
+            if col in req_cols:
+                mark_req = 'YES'
+            else:
+                mark_req = 'NO'
+            existance.append([col,mark_act,mark_req])
+        if set(act_cols) == set(req_cols):
+            pass 
+        else:
+            headers = ['column_name',"existance_actual_table","existance_requirement_table"]
+            table_result = tabulate(tabular_data=existance,headers=headers,tablefmt='heavy_grid')
+            print(table_name)
+            print('\n')
+            print(table_result)
+            print('-'*70)
 
 checking_column(actual_table=table_name_dict,requirement_table=requirements_table)
+# check data_types 
+# create function check data types 
+
+def check_data_type(actual_data,requirement_data):
+    missmatch_data = []
+    for table_name,cols_req in requirement_data.items():
+        col_req_types = {}
+        for col_req in cols_req:
+            col_req_name = col_req['column_name'] 
+            col_req_type = col_req['data_type']
+            col_req_types[col_req_name] = col_req_type
+        
+        counter = 0 
+        col_act_types = {}
+        while  counter < len(actual_data[table_name].columns) : 
+            col_act_types[list(actual_data[table_name].columns)[counter]] = list(actual_data[table_name].dtypes)[counter]
+            counter +=1
+        
+        for req_col_name,req_type in col_req_types.items():
+            if req_col_name not in col_act_types:
+                missmatch_data.append([table_name,req_col_name,req_type,'Not Found',f'Not Match: the column {req_col_name} not found'])
+            else:
+                if col_req_types[req_col_name] == col_act_types[req_col_name]:
+                    pass 
+                else:
+                    missmatch_data.append([table_name,req_col_name,req_type,col_act_types[req_col_name],'Not Match'])
+        
+        for col_act_name in col_act_types:
+            if col_act_name not in col_req_types:
+                missmatch_data.append([table_name,col_act_name,'Not Found',col_act_types[col_act_name],f'Not Match: the coloumn {col_act_name} are not required'])
+
+    if missmatch_data:
+        headers = ['table_name','column_name','Requirement_type','actual_type','Status']
+        table_data = tabulate(missmatch_data,headers=headers,tablefmt='heavy_grid')
+        print(table_data)
+    else:
+        print('✅ All data types match requirements!')
+check_data_type(actual_data=table_name_dict,requirement_data=requirements_table)
 
 
+# check missing value
+def missing_value(actual_table):
+    null_data = []
+    for table_name in actual_table:
+        for col_name in list(actual_table[table_name]):
+            null_value = actual_table[table_name][col_name].isnull().sum()
+            if null_value >0 :
+                null_data.append([table_name,col_name,null_value,round(null_value/len(actual_table[table_name])*100,2)])
+            
 
+    if null_data:
+        header = ['table_name','column_name','missing_value_count','missing_value_persentation(%)']
+        table = tabulate(null_data,headers=header,tablefmt='heavy_grid')
+        print(table)
+    else:
+        print('No missing Value')
+missing_value(table_name_dict)
 
+# Check duplicate_data 
+def duplicate_data(actual_table):
+    dups_data = []
+    for table_name,df in actual_table.items():
+        try:
+            duplicate_row = df[df.duplicated(keep= False)]
+            if not duplicate_row.empty:
+                dups_data.append([table_name,len(duplicate_row)])
+                
+        except:
+            pass
 
+    headers = ['table_name','number_of_duplicate']
+    table = tabulate(dups_data,headers=headers,tablefmt='heavy_grid')
+    print(table)
 
-
+duplicate_data(actual_table=table_name_dict)
