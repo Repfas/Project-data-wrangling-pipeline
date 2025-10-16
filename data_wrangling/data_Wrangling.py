@@ -11,7 +11,7 @@ dbname = "dvdrental_clean"  # Sesuai dengan docker-compose
 user = "root"               # Sesuai dengan docker-compose  
 password = "qwerty123"
 host = "localhost"
-port = "5433"              # Port yang di-expose Docker
+port = "5433"              
 
 engine_str = f"postgresql://{user}:{password}@{host}:{port}/{dbname}"
 engine = create_engine(engine_str)
@@ -30,7 +30,7 @@ requirements_table_url = 'https://rahilpacmann.github.io/case-data-wrangling-api
 with urllib.request.urlopen(requirements_table_url) as url:
     requirements_table = json.load(url)
 
-print(requirements_table)
+
 # get data city_df
 city_df = pd.read_csv(city_raw)
 # print(city_df.head())
@@ -84,6 +84,9 @@ table_name_dict = {
 # DATA VALIDATION 
 # create function check requirement
 # 
+print("╔══════════════════════════════╗")
+print("║   🔍 TABLE EXISTENCE CHECK   ║")
+print("╚══════════════════════════════╝")
 
 def check_table_requirement(actual_table,requirement_table):
     table_actual = list(actual_table.keys())
@@ -103,7 +106,9 @@ check_table_requirement(actual_table=table_name_dict,requirement_table=requireme
 
 # CHECK DATA SHAPE 
 # create a function check shape
-
+print("╔══════════════════════════════╗")
+print("║      📊 DATA SHAPE CHECK     ║")
+print("╚══════════════════════════════╝")
 def check_shape(actual_table):
     # create empty list
     table_shape = []
@@ -120,6 +125,10 @@ check_shape(actual_table=table_name_dict)
 # print(requirements_table)
 
 # Checking a columns 
+print("╔══════════════════════════════╗")
+print("║     🗂️  COLUMN EXISTENCE     ║")
+print("╚══════════════════════════════╝")
+
 def checking_column(actual_table,requirement_table):
     for table_name in requirement_table:
         act_cols = list(actual_table[table_name].columns)
@@ -152,6 +161,9 @@ def checking_column(actual_table,requirement_table):
 checking_column(actual_table=table_name_dict,requirement_table=requirements_table)
 # check data_types 
 # create function check data types 
+print("╔══════════════════════════════╗")
+print("║     📝 DATA TYPE CHECK       ║")
+print("╚══════════════════════════════╝")
 
 def check_data_type(actual_data,requirement_data):
     missmatch_data = []
@@ -191,6 +203,10 @@ check_data_type(actual_data=table_name_dict,requirement_data=requirements_table)
 
 
 # check missing value
+print("╔══════════════════════════════╗")
+print("║  🚀 MISSING VALUE ANALYSIS   ║")
+print("╚══════════════════════════════╝")
+
 def missing_value(actual_table):
     null_data = []
     for table_name in actual_table:
@@ -209,6 +225,10 @@ def missing_value(actual_table):
 missing_value(table_name_dict)
 
 # Check duplicate_data 
+print("╔══════════════════════════════╗")
+print("║     🔄 DUPLICATE DATA CHECK  ║")
+print("╚══════════════════════════════╝")
+
 def duplicate_data(actual_table):
     dups_data = []
     for table_name,df in actual_table.items():
@@ -225,3 +245,68 @@ def duplicate_data(actual_table):
     print(table)
 
 duplicate_data(actual_table=table_name_dict)
+
+
+# DATA TRANSFORM 
+# 1. Data cleansing 
+# Cleaning the data 
+# a. handle the missing column 
+# a.1 create country_id in table country 
+table_name_dict['country']['country_id'] = [x for x in range (1,110)]
+
+
+
+#data country_id in table city is not existance. need to join the data country_id and city 
+# to create a country_id
+
+city_join_country = table_name_dict['city'].join(table_name_dict['country'].set_index('country'))
+city_join_country= city_join_country.drop(columns='country')
+table_name_dict['city'] = city_join_country
+
+# handle missing value --> create function of it
+def remove_missing_value(actual_data):
+    cleanned_actual_table = {}
+    for table_name,df in actual_data.items():
+        try:
+            cleanned_actual_table[table_name] = df.dropna() 
+        except:
+            pass
+    return cleanned_actual_table
+
+table_name_dict = remove_missing_value(table_name_dict)
+
+check_data_type(actual_data=table_name_dict,requirement_data=requirements_table)
+
+
+def adjust_data_type(actual_data:pd.DataFrame,requirement_data):
+    adjust_data_dict = {}
+    for table_name, df in actual_data.items():
+        if table_name in requirement_data:
+            req_table = requirement_data[table_name]
+            for detail_req in req_table:
+                col_name = detail_req['column_name']
+                type_req = detail_req['data_type']
+                if col_name in df.columns:
+                    df[col_name] = df[col_name].astype(type_req)
+                    adjust_data_dict[col_name] = df[col_name]
+    
+    return adjust_data_dict
+
+adjust_data_type(actual_data=table_name_dict,requirement_data=requirements_table)
+check_data_type(actual_data=table_name_dict,requirement_data=requirements_table)
+
+
+def remove_duplicates(actual_data):
+    non_duplicate = {}
+    for table_name,df in actual_data.items():
+        try:
+            df.drop_duplicates(keep= 'first',inplace = True)
+            non_duplicate[table_name] = df 
+        except:
+            pass 
+    return non_duplicate
+
+remove_duplicates(actual_data=table_name_dict)
+duplicate_data(actual_table=table_name_dict)
+
+
